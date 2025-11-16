@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block title %}Checklist - Nawara Time Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-5 mb-0">
+            <i class="bi bi-check2-square"></i> Mes Tâches
+        </h1>
+        <p class="text-muted mb-0">
+            {% if total_tasks > 0 %}
+                Total : {{ total_tasks }} tâche{{ total_tasks|pluralize }}
+            {% else %}
+                Aucune tâche. Commencez par en créer une !
+            {% endif %}
+        </p>
+    </div>
+    <a href="{% url 'task_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Nouvelle tâche
+    </a>
+</div>
+
+<!-- Tâches du jour -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-calendar-day"></i> Aujourd'hui</h5>
+    </div>
+    <div class="card-body">
+        {% if today_tasks %}
+        <div class="list-group list-group-flush">
+            {% for task in today_tasks %}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="form-check flex-grow-1">
+                        <input class="form-check-input task-checkbox" 
+                               type="checkbox" 
+                               {% if task.status == 'done' %}checked{% endif %}
+                               data-task-id="{{ task.pk }}"
+                               id="task-{{ task.pk }}">
+                        <label class="form-check-label {% if task.status == 'done' %}text-decoration-line-through text-muted{% endif %}" 
+                               for="task-{{ task.pk }}">
+                            <strong>{{ task.title }}</strong>
+                            <span class="badge {{ task.get_priority_badge_class }} ms-2">
+                                {{ task.get_priority_display }}
+                            </span>
+                            {% if task.category %}
+                            <small class="text-muted ms-2">
+                                <i class="bi bi-tag"></i> {{ task.category }}
+                            </small>
+                            {% endif %}
+                        </label>
+                    </div>
+                    <div class="btn-group btn-group-sm ms-2">
+                        <a href="{% url 'task_detail' task.pk %}" class="btn btn-outline-primary btn-sm" title="Détails">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{% url 'task_update' task.pk %}" class="btn btn-outline-secondary btn-sm" title="Modifier">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{% url 'task_delete' task.pk %}" class="btn btn-outline-danger btn-sm" title="Supprimer">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">Aucune tâche pour aujourd'hui</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tâches en cours -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="bi bi-hourglass-split"></i> En cours</h5>
+    </div>
+    <div class="card-body">
+        {% if in_progress_tasks %}
+        <div class="list-group list-group-flush">
+            {% for task in in_progress_tasks %}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="form-check flex-grow-1">
+                        <input class="form-check-input task-checkbox" 
+                               type="checkbox" 
+                               data-task-id="{{ task.pk }}"
+                               id="task-{{ task.pk }}">
+                        <label class="form-check-label" for="task-{{ task.pk }}">
+                            <strong>{{ task.title }}</strong>
+                            <span class="badge {{ task.get_priority_badge_class }} ms-2">
+                                {{ task.get_priority_display }}
+                            </span>
+                            <small class="text-muted ms-2">
+                                <i class="bi bi-calendar"></i> {{ task.due_date|date:"d/m/Y" }}
+                            </small>
+                        </label>
+                    </div>
+                    <div class="btn-group btn-group-sm ms-2">
+                        <a href="{% url 'task_detail' task.pk %}" class="btn btn-outline-primary btn-sm" title="Détails">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{% url 'task_update' task.pk %}" class="btn btn-outline-secondary btn-sm" title="Modifier">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{% url 'task_delete' task.pk %}" class="btn btn-outline-danger btn-sm" title="Supprimer">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">Aucune tâche en cours</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tâches à faire -->
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0"><i class="bi bi-list-check"></i> À faire</h5>
+    </div>
+    <div class="card-body">
+        {% if todo_tasks %}
+        <div class="list-group list-group-flush">
+            {% for task in todo_tasks %}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="form-check flex-grow-1">
+                        <input class="form-check-input task-checkbox" 
+                               type="checkbox" 
+                               data-task-id="{{ task.pk }}"
+                               id="task-{{ task.pk }}">
+                        <label class="form-check-label" for="task-{{ task.pk }}">
+                            <strong>{{ task.title }}</strong>
+                            <span class="badge {{ task.get_priority_badge_class }} ms-2">
+                                {{ task.get_priority_display }}
+                            </span>
+                            <small class="text-muted ms-2">
+                                <i class="bi bi-calendar"></i> {{ task.due_date|date:"d/m/Y" }}
+                            </small>
+                        </label>
+                    </div>
+                    <div class="btn-group btn-group-sm ms-2">
+                        <a href="{% url 'task_detail' task.pk %}" class="btn btn-outline-primary btn-sm" title="Détails">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{% url 'task_update' task.pk %}" class="btn btn-outline-secondary btn-sm" title="Modifier">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{% url 'task_delete' task.pk %}" class="btn btn-outline-danger btn-sm" title="Supprimer">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">Aucune tâche à faire</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tâches terminées -->
+<div class="card">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="bi bi-check-circle"></i> Terminées ({{ completed_tasks.count }})</h5>
+    </div>
+    <div class="card-body">
+        {% if completed_tasks %}
+        <div class="list-group list-group-flush">
+            {% for task in completed_tasks|slice:":10" %}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="form-check flex-grow-1">
+                        <input class="form-check-input task-checkbox" 
+                               type="checkbox" 
+                               checked
+                               data-task-id="{{ task.pk }}"
+                               id="task-{{ task.pk }}">
+                        <label class="form-check-label text-decoration-line-through text-muted" 
+                               for="task-{{ task.pk }}">
+                            {{ task.title }}
+                            <small class="ms-2">
+                                <i class="bi bi-calendar-check"></i> {{ task.updated_at|date:"d/m/Y" }}
+                            </small>
+                        </label>
+                    </div>
+                    <div class="btn-group btn-group-sm ms-2">
+                        <a href="{% url 'task_detail' task.pk %}" class="btn btn-outline-primary btn-sm" title="Détails">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{% url 'task_update' task.pk %}" class="btn btn-outline-secondary btn-sm" title="Modifier">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{% url 'task_delete' task.pk %}" class="btn btn-outline-danger btn-sm" title="Supprimer">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% if completed_tasks.count > 10 %}
+        <div class="text-center mt-3">
+            <small class="text-muted">... et {{ completed_tasks.count|add:"-10" }} autre(s)</small>
+        </div>
+        {% endif %}
+        {% else %}
+        <p class="text-muted mb-0">Aucune tâche terminée</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gérer les clics sur les checkboxes
+    const checkboxes = document.querySelectorAll('.task-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const taskId = this.dataset.taskId;
+            const isChecked = this.checked;
+            
+            // Créer le formulaire et l'envoyer
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = isChecked ? 
+                `/tasks/${taskId}/mark-done/` : 
+                `/tasks/${taskId}/mark-todo/`;
+            
+            // Ajouter le token CSRF
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfToken) {
+                form.innerHTML = csrfToken.outerHTML;
+            }
+            
+            // Ajouter le champ next
+            const nextInput = document.createElement('input');
+            nextInput.type = 'hidden';
+            nextInput.name = 'next';
+            nextInput.value = window.location.pathname;
+            form.appendChild(nextInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        });
+    });
+});
+</script>
+{% csrf_token %}
+{% endblock %}

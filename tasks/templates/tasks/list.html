@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes tâches - Nawara Time Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-5 mb-0">
+        <i class="bi bi-list-task"></i> Mes tâches
+    </h1>
+    <div class="d-flex gap-2">
+        <a href="{% url 'task_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nouvelle tâche
+        </a>
+        <a href="{% url 'checklist' %}" class="btn btn-outline-primary">
+            <i class="bi bi-check2-square"></i> Checklist
+        </a>
+        <a href="{% url 'calendar' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-calendar3"></i> Calendrier
+        </a>
+    </div>
+</div>
+
+<!-- Formulaires de recherche et filtrage -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Recherche</label>
+                {{ search_form.search_query }}
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Statut</label>
+                {{ filter_form.status }}
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Priorité</label>
+                {{ filter_form.priority }}
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Catégorie</label>
+                {{ filter_form.category }}
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Filtrer
+                </button>
+            </div>
+        </form>
+        {% if request.GET %}
+        <div class="mt-2">
+            <a href="{% url 'task_list' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Réinitialiser les filtres
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Liste des tâches -->
+{% if tasks %}
+<div class="row">
+    {% for task in tasks %}
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card task-card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="{% url 'task_detail' task.pk %}" class="text-decoration-none">
+                        {{ task.title }}
+                    </a>
+                </h5>
+                
+                <div class="mb-2">
+                    <span class="badge {{ task.get_priority_badge_class }}">
+                        {{ task.get_priority_display }}
+                    </span>
+                    <span class="badge {{ task.get_status_badge_class }}">
+                        {{ task.get_status_display }}
+                    </span>
+                    {% if task.is_overdue %}
+                    <span class="badge bg-danger">
+                        <i class="bi bi-exclamation-triangle"></i> En retard
+                    </span>
+                    {% elif task.is_due_today %}
+                    <span class="badge bg-info">
+                        <i class="bi bi-calendar-day"></i> Aujourd'hui
+                    </span>
+                    {% endif %}
+                </div>
+                
+                {% if task.description %}
+                <p class="card-text text-muted small">
+                    {{ task.description|truncatewords:20 }}
+                </p>
+                {% endif %}
+                
+                <div class="text-muted small mb-3">
+                    <i class="bi bi-calendar"></i> {{ task.due_date|date:"d/m/Y" }}
+                    {% if task.category %}
+                    <br><i class="bi bi-tag"></i> {{ task.category }}
+                    {% endif %}
+                </div>
+                
+                <!-- Actions rapides -->
+                <div class="mb-2">
+                    {% if task.status != 'done' %}
+                    <form method="post" action="{% url 'task_mark_done' task.pk %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="btn btn-sm btn-success" title="Marquer comme terminée">
+                            <i class="bi bi-check-circle"></i> Terminer
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if task.status == 'todo' %}
+                    <form method="post" action="{% url 'task_mark_progress' task.pk %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="btn btn-sm btn-primary" title="Commencer">
+                            <i class="bi bi-play-circle"></i> Démarrer
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if task.status == 'done' %}
+                    <form method="post" action="{% url 'task_mark_todo' task.pk %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="btn btn-sm btn-secondary" title="Réouvrir">
+                            <i class="bi bi-arrow-counterclockwise"></i> Réouvrir
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                
+                <div class="btn-group w-100" role="group">
+                    <a href="{% url 'task_detail' task.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye"></i> Voir
+                    </a>
+                    <a href="{% url 'task_update' task.pk %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i> Modifier
+                    </a>
+                    <a href="{% url 'task_delete' task.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i> Supprimer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1{{ request.GET.urlencode|slice:'5:' }}">Premier</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ request.GET.urlencode|slice:'5:' }}">Précédent</a>
+        </li>
+        {% endif %}
+        
+        <li class="page-item active">
+            <span class="page-link">Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ request.GET.urlencode|slice:'5:' }}">Suivant</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ request.GET.urlencode|slice:'5:' }}">Dernier</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="alert alert-info text-center">
+    <i class="bi bi-info-circle" style="font-size: 2rem;"></i>
+    <p class="mt-2 mb-2">Aucune tâche trouvée.</p>
+    <a href="{% url 'task_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Créer votre première tâche
+    </a>
+</div>
+{% endif %}
+{% endblock %}

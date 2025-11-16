@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Tâches du {{ target_date|date:"d/m/Y" }} - Nawara Time Manager{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1 class="display-5">
+        <i class="bi bi-calendar-day"></i> Tâches du {{ target_date|date:"d/m/Y" }}
+    </h1>
+    {% if is_today %}
+    <span class="badge bg-primary fs-6">Aujourd'hui</span>
+    {% endif %}
+</div>
+
+<!-- Navigation -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <a href="?date={{ prev_date|date:'Y-m-d' }}" class="btn btn-outline-primary">
+                    <i class="bi bi-chevron-left"></i> Jour précédent
+                </a>
+            </div>
+            <div class="col text-center">
+                <a href="{% url 'calendar' %}?year={{ target_date.year }}&month={{ target_date.month }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-calendar3"></i> Voir le calendrier
+                </a>
+            </div>
+            <div class="col-auto">
+                <a href="?date={{ next_date|date:'Y-m-d' }}" class="btn btn-outline-primary">
+                    Jour suivant <i class="bi bi-chevron-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tâches -->
+{% if tasks %}
+<div class="row">
+    {% for task in tasks %}
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card task-card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="{% url 'task_detail' task.pk %}" class="text-decoration-none">
+                        {{ task.title }}
+                    </a>
+                </h5>
+                
+                <div class="mb-2">
+                    <span class="badge {{ task.get_priority_badge_class }}">
+                        {{ task.get_priority_display }}
+                    </span>
+                    <span class="badge {{ task.get_status_badge_class }}">
+                        {{ task.get_status_display }}
+                    </span>
+                </div>
+                
+                {% if task.description %}
+                <p class="card-text text-muted small">
+                    {{ task.description|truncatewords:20 }}
+                </p>
+                {% endif %}
+                
+                {% if task.category %}
+                <div class="text-muted small mb-3">
+                    <i class="bi bi-tag"></i> {{ task.category }}
+                </div>
+                {% endif %}
+                
+                <div class="btn-group w-100" role="group">
+                    <a href="{% url 'task_detail' task.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye"></i> Voir
+                    </a>
+                    <a href="{% url 'task_update' task.pk %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i> Modifier
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+    <i class="bi bi-calendar-x" style="font-size: 2rem;"></i>
+    <p class="mt-2 mb-0">Aucune tâche pour cette journée.</p>
+</div>
+{% endif %}
+
+<!-- Actions -->
+<div class="text-center mt-4">
+    <a href="{% url 'task_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Ajouter une tâche
+    </a>
+</div>
+{% endblock %}

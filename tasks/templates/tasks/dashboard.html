@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load task_extras %}
+
+{% block title %}Tableau de bord - Nawara Time Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-4 mb-0">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </h1>
+        <p class="lead text-muted mb-0">Bienvenue, {{ user.username }} !</p>
+    </div>
+    <a href="{% url 'checklist' %}" class="btn btn-primary">
+        <i class="bi bi-check2-square"></i> Voir mes tâches
+    </a>
+</div>
+
+<!-- Cartes statistiques -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <i class="bi bi-exclamation-triangle text-danger" style="font-size: 2rem;"></i>
+                <h3 class="mt-2">{{ overdue_count }}</h3>
+                <p class="text-muted mb-0">Tâches en retard</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-day text-primary" style="font-size: 2rem;"></i>
+                <h3 class="mt-2">{{ today_count }}</h3>
+                <p class="text-muted mb-0">Tâches du jour</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                <h3 class="mt-2">{{ completed_count }}</h3>
+                <p class="text-muted mb-0">Tâches complétées</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <i class="bi bi-list-task text-info" style="font-size: 2rem;"></i>
+                <h3 class="mt-2">{{ total_count }}</h3>
+                <p class="text-muted mb-0">Total de tâches</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Répartition par statut et priorité -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Répartition par statut</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="bi bi-circle-fill text-secondary"></i> À faire</span>
+                        <strong>{{ status_distribution.todo }}</strong>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-secondary" style="width: {% if total_count > 0 %}{{ status_distribution.todo|mul:100|div:total_count }}{% else %}0{% endif %}%"></div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="bi bi-circle-fill text-primary"></i> En cours</span>
+                        <strong>{{ status_distribution.in_progress }}</strong>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: {% if total_count > 0 %}{{ status_distribution.in_progress|mul:100|div:total_count }}{% else %}0{% endif %}%"></div>
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="bi bi-circle-fill text-success"></i> Terminée</span>
+                        <strong>{{ status_distribution.done }}</strong>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" style="width: {% if total_count > 0 %}{{ status_distribution.done|mul:100|div:total_count }}{% else %}0{% endif %}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="bi bi-flag"></i> Répartition par priorité</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="bi bi-circle-fill text-success"></i> Faible</span>
+                        <strong>{{ priority_distribution.low }}</strong>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" style="width: {% if total_count > 0 %}{{ priority_distribution.low|mul:100|div:total_count }}{% else %}0{% endif %}%"></div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="bi bi-circle-fill text-warning"></i> Moyenne</span>
+                        <strong>{{ priority_distribution.medium }}</strong>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-warning" style="width: {% if total_count > 0 %}{{ priority_distribution.medium|mul:100|div:total_count }}{% else %}0{% endif %}%"></div>
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><i class="bi bi-circle-fill text-danger"></i> Haute</span>
+                        <strong>{{ priority_distribution.high }}</strong>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-danger" style="width: {% if total_count > 0 %}{{ priority_distribution.high|mul:100|div:total_count }}{% else %}0{% endif %}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progression de la semaine -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-calendar-week"></i> Progression de la semaine</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>{{ week_completed }} / {{ week_total }} tâches complétées</span>
+                    <strong>{{ week_progress_percentage }}%</strong>
+                </div>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ week_progress_percentage }}%" aria-valuenow="{{ week_progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                        {{ week_progress_percentage }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Listes de tâches -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-circle"></i> Tâches en retard</h5>
+            </div>
+            <div class="card-body">
+                {% if overdue_tasks %}
+                <ul class="list-group list-group-flush">
+                    {% for task in overdue_tasks %}
+                    <li class="list-group-item">
+                        <a href="{% url 'task_detail' task.pk %}" class="text-decoration-none">
+                            <strong>{{ task.title }}</strong>
+                        </a>
+                        <br>
+                        <small class="text-muted">
+                            <i class="bi bi-calendar"></i> {{ task.due_date|date:"d/m/Y" }}
+                        </small>
+                        <span class="badge {{ task.get_priority_badge_class }} float-end">
+                            {{ task.get_priority_display }}
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="text-center mt-3">
+                    <a href="{% url 'task_list' %}" class="btn btn-sm btn-outline-danger">Voir toutes</a>
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">
+                    <i class="bi bi-check-circle"></i> Aucune tâche en retard !
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-calendar-day"></i> Tâches du jour</h5>
+            </div>
+            <div class="card-body">
+                {% if today_tasks %}
+                <ul class="list-group list-group-flush">
+                    {% for task in today_tasks %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="{% url 'task_detail' task.pk %}" class="text-decoration-none">
+                                    <strong>{{ task.title }}</strong>
+                                </a>
+                                <span class="badge {{ task.get_status_badge_class }}">
+                                    {{ task.get_status_display }}
+                                </span>
+                            </div>
+                            {% if task.status != 'done' %}
+                            <form method="post" action="{% url 'task_mark_done' task.pk %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.path }}">
+                                <button type="submit" class="btn btn-sm btn-success" title="Terminer">
+                                    <i class="bi bi-check-circle"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="text-center mt-3">
+                    <a href="{% url 'day_view' %}?date={{ today|date:'Y-m-d' }}" class="btn btn-sm btn-outline-primary">Voir toutes</a>
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">
+                    <i class="bi bi-calendar-x"></i> Aucune tâche pour aujourd'hui !
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Filtres personnalisés Django pour les calculs dans les templates
+</script>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ task.title }} - Nawara Time Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card border-0 shadow-sm" style="border-left: 4px solid var(--primary-color) !important;">
+            <div class="card-body p-4">
+                <!-- En-tête avec titre et badges -->
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <h3 class="mb-0">{{ task.title }}</h3>
+                    <div class="d-flex gap-2">
+                        <span class="badge {{ task.get_priority_badge_class }}">{{ task.get_priority_display }}</span>
+                        <span class="badge {{ task.get_status_badge_class }}">{{ task.get_status_display }}</span>
+                    </div>
+                </div>
+                
+                <!-- Description -->
+                {% if task.description %}
+                <div class="mb-4">
+                    <p class="text-muted mb-0">{{ task.description|linebreaks }}</p>
+                </div>
+                {% endif %}
+                
+                <!-- Informations simplifiées -->
+                <div class="mb-4">
+                    <div class="d-flex flex-wrap gap-3 text-muted small">
+                        <span><i class="bi bi-calendar me-1"></i> {{ task.due_date|date:"d/m/Y" }}</span>
+                        {% if task.category %}
+                        <span><i class="bi bi-tag me-1"></i> {{ task.category }}</span>
+                        {% endif %}
+                        {% if task.is_overdue %}
+                        <span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i> En retard</span>
+                        {% elif task.is_due_today %}
+                        <span class="text-info"><i class="bi bi-calendar-day me-1"></i> Aujourd'hui</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <!-- Actions simplifiées -->
+                <div class="d-flex flex-wrap gap-2">
+                    {% if task.status != 'done' %}
+                    <form method="post" action="{% url 'task_mark_done' task.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button type="submit" class="btn btn-sm btn-success">
+                            <i class="bi bi-check-circle"></i> Terminée
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if task.status == 'todo' %}
+                    <form method="post" action="{% url 'task_mark_progress' task.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-play"></i> Commencer
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if task.status == 'done' %}
+                    <form method="post" action="{% url 'task_mark_todo' task.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-arrow-counterclockwise"></i> Réouvrir
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <a href="{% url 'task_update' task.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Modifier
+                    </a>
+                    <a href="{% url 'task_delete' task.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i> Supprimer
+                    </a>
+                    <a href="{% url 'task_list' %}" class="btn btn-sm btn-outline-secondary ms-auto">
+                        <i class="bi bi-arrow-left"></i> Retour
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load task_extras %}
+
+{% block title %}Calendrier - Nawara Time Manager{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1 class="display-5">
+        <i class="bi bi-calendar3"></i> Calendrier
+    </h1>
+</div>
+
+<!-- Navigation du calendrier -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-outline-primary">
+                    <i class="bi bi-chevron-left"></i> Précédent
+                </a>
+            </div>
+            <div class="col text-center">
+                <h3 class="mb-0">{{ month_name }} {{ current_year }}</h3>
+            </div>
+            <div class="col-auto">
+                <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-outline-primary">
+                    Suivant <i class="bi bi-chevron-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calendrier -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center">Lundi</th>
+                        <th class="text-center">Mardi</th>
+                        <th class="text-center">Mercredi</th>
+                        <th class="text-center">Jeudi</th>
+                        <th class="text-center">Vendredi</th>
+                        <th class="text-center">Samedi</th>
+                        <th class="text-center">Dimanche</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for week in calendar %}
+                    <tr>
+                        {% for day in week %}
+                        <td class="p-2 {% if day == today.day and current_month == today.month and current_year == today.year %}table-primary{% endif %}" style="min-height: 100px; vertical-align: top;">
+                            {% if day != 0 %}
+                            <div class="fw-bold mb-2">
+                                <a href="{% url 'day_view' %}?date={{ current_year }}-{{ current_month|stringformat:'02d' }}-{{ day|stringformat:'02d' }}" class="text-decoration-none">
+                                    {{ day }}
+                                </a>
+                            </div>
+                            
+                            {% if day in tasks_by_day %}
+                            <div class="small">
+                                {% for task in tasks_by_day|get_item:day %}
+                                {% if forloop.counter <= 3 %}
+                                <div class="mb-1">
+                                    <a href="{% url 'task_detail' task.pk %}" class="text-decoration-none" title="{{ task.title }}">
+                                        <span class="badge {{ task.get_priority_badge_class }} w-100 text-truncate">
+                                            {{ task.title|truncatewords:3 }}
+                                        </span>
+                                    </a>
+                                </div>
+                                {% endif %}
+                                {% if forloop.counter == 3 and tasks_by_day|get_item:day|length > 3 %}
+                                    <small class="text-muted">+ {{ tasks_by_day|get_item:day|length|add:"-3" }} autre(s)</small>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Légende -->
+<div class="card mt-4">
+    <div class="card-body">
+        <h5><i class="bi bi-info-circle"></i> Légende</h5>
+        <div class="row">
+            <div class="col-md-4">
+                <span class="badge bg-success">Faible</span> Priorité faible
+            </div>
+            <div class="col-md-4">
+                <span class="badge bg-warning text-dark">Moyenne</span> Priorité moyenne
+            </div>
+            <div class="col-md-4">
+                <span class="badge bg-danger">Haute</span> Priorité haute
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Autres vues -->
+<div class="card mt-4">
+    <div class="card-body text-center">
+        <h5 class="mb-3">Autres vues</h5>
+        <a href="{% url 'day_view' %}?date={{ today|date:'Y-m-d' }}" class="btn btn-outline-primary me-2">
+            <i class="bi bi-calendar-day"></i> Vue journalière
+        </a>
+        <a href="{% url 'week_view' %}" class="btn btn-outline-primary">
+            <i class="bi bi-calendar-week"></i> Vue hebdomadaire
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Template tag personnalisé pour accéder aux éléments de dictionnaire
+document.addEventListener('DOMContentLoaded', function() {
+    // Code JS si nécessaire
+});
+</script>
+{% endblock %}
